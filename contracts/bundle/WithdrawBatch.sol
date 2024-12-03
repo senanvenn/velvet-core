@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { TransferHelper } from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import { IAllowanceTransfer } from "../core/interfaces/IAllowanceTransfer.sol";
@@ -14,7 +15,7 @@ import { MathUtils } from "../core/calculations/MathUtils.sol";
  * @notice A contract for performing multi-token swap and withdrawal operations.
  * @dev This contract uses Enso's swap execution logic for delegating swaps.
  */
-contract WithdrawBatch is ReentrancyGuard {
+contract WithdrawBatch is VennFirewallConsumer, ReentrancyGuard {
   // The address of Enso's swap execution logic; swaps are delegated to this target.
   address constant SWAP_TARGET = 0x38147794FF247e5Fc179eDbAE6C37fff88f68C52;
   address constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
@@ -38,7 +39,7 @@ contract WithdrawBatch is ReentrancyGuard {
     address user,
     uint256 _expectedOutputAmount,
     bytes[] memory _callData
-  ) external nonReentrant {
+  ) external nonReentrant firewallProtected {
     address[] memory tokens = IPortfolio(_target).getTokens();
     uint256 tokenLength = tokens.length;
     uint256 balanceOfSameToken;

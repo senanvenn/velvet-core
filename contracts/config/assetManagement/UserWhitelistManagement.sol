@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
 import {AssetManagerCheck} from "./AssetManagerCheck.sol";
 import {IProtocolConfig} from "../../config/protocol/IProtocolConfig.sol";
@@ -10,7 +11,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/uti
  * @title UserWhitelistManagement
  * @dev Manages user whitelisting, allowing for flexible access control.
  */
-abstract contract UserWhitelistManagement is AssetManagerCheck, Initializable {
+abstract contract UserWhitelistManagement is VennFirewallConsumer, AssetManagerCheck, Initializable {
   // Reference to the protocol configuration contract
   IProtocolConfig private protocolConfig;
 
@@ -32,7 +33,7 @@ abstract contract UserWhitelistManagement is AssetManagerCheck, Initializable {
    */
   function whitelistUser(
     address[] calldata users
-  ) external virtual onlyWhitelistManager {
+  ) external virtual onlyWhitelistManager firewallProtected {
     uint256 len = users.length;
     if (len > protocolConfig.whitelistLimit())
       revert ErrorLibrary.InvalidWhitelistLimit();
@@ -50,7 +51,7 @@ abstract contract UserWhitelistManagement is AssetManagerCheck, Initializable {
    */
   function removeWhitelistedUser(
     address[] calldata users
-  ) external virtual onlyWhitelistManager {
+  ) external virtual onlyWhitelistManager firewallProtected {
     uint256 len = users.length;
     for (uint256 i; i < len; i++) {
       if (users[i] == address(0)) revert ErrorLibrary.InvalidAddress();

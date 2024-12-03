@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/token/ERC20/IERC20Upgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/security/ReentrancyGuardUpgradeable.sol";
 import {TransferHelper} from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
@@ -21,6 +22,7 @@ import {IAllowanceTransfer} from "../interfaces/IAllowanceTransfer.sol";
  * Combines configurations, calculations, fee handling, and token operations.
  */
 abstract contract VaultManager is
+  VennFirewallConsumer,
   VaultConfig,
   VaultCalculations,
   FeeManager,
@@ -57,7 +59,7 @@ abstract contract VaultManager is
     uint256 _minMintAmount,
     IAllowanceTransfer.PermitBatch calldata _permit,
     bytes calldata _signature
-  ) external virtual nonReentrant {
+  ) external virtual nonReentrant firewallProtected {
     _multiTokenDepositWithPermit(
       msg.sender,
       depositAmounts,
@@ -81,7 +83,7 @@ abstract contract VaultManager is
     address _depositFor,
     uint256[] calldata depositAmounts,
     uint256 _minMintAmount
-  ) external virtual nonReentrant {
+  ) external virtual nonReentrant firewallProtected {
     _multiTokenDeposit(_depositFor, depositAmounts, _minMintAmount);
   }
 
@@ -95,7 +97,7 @@ abstract contract VaultManager is
     address _withdrawFor,
     address _tokenReceiver,
     uint256 _portfolioTokenAmount
-  ) external virtual nonReentrant {
+  ) external virtual nonReentrant firewallProtected {
     _spendAllowance(_withdrawFor, msg.sender, _portfolioTokenAmount);
     address[] memory _emptyArray;
     _multiTokenWithdrawal(
@@ -112,7 +114,7 @@ abstract contract VaultManager is
    */
   function multiTokenWithdrawal(
     uint256 _portfolioTokenAmount
-  ) external virtual nonReentrant {
+  ) external virtual nonReentrant firewallProtected {
     address[] memory _emptyArray;
     _multiTokenWithdrawal(
       msg.sender,
@@ -134,7 +136,7 @@ abstract contract VaultManager is
   function emergencyWithdrawal(
     uint256 _portfolioTokenAmount,
     address[] memory _exemptionTokens
-  ) external virtual nonReentrant {
+  ) external virtual nonReentrant firewallProtected {
     _multiTokenWithdrawal(
       msg.sender,
       msg.sender,
@@ -160,7 +162,7 @@ abstract contract VaultManager is
     address _tokenReceiver,
     uint256 _portfolioTokenAmount,
     address[] memory _exemptionTokens
-  ) external virtual nonReentrant {
+  ) external virtual nonReentrant firewallProtected {
     _spendAllowance(_withdrawFor, msg.sender, _portfolioTokenAmount);
     _multiTokenWithdrawal(
       _withdrawFor,
@@ -181,7 +183,7 @@ abstract contract VaultManager is
     address _token,
     uint256 _amount,
     address _to
-  ) external onlyRebalancerContract {
+  ) external onlyRebalancerContract firewallProtected {
     // Prepare the data for ERC20 token transfer
     bytes memory inputData = abi.encodeWithSelector(
       IERC20Upgradeable.transfer.selector,
@@ -210,7 +212,7 @@ abstract contract VaultManager is
   function claimRewardTokens(
     address _target,
     bytes memory _claimCalldata
-  ) external onlyRebalancerContract {
+  ) external onlyRebalancerContract firewallProtected {
     // Execute the transfer through the safe module and check for success
     (, bytes memory data) = IVelvetSafeModule(safeModule).executeWallet(
       _target,

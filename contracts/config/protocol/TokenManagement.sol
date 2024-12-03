@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
 import {OwnableCheck} from "./OwnableCheck.sol";
 import {IPriceOracle} from "../../oracle/IPriceOracle.sol";
@@ -12,7 +13,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/uti
  * It ensures that only tokens with verified price information and approved by the platform owner can be used,
  * enhancing the platform's security and reliability.
  */
-abstract contract TokenManagement is OwnableCheck, Initializable {
+abstract contract TokenManagement is VennFirewallConsumer, OwnableCheck, Initializable {
   // Interface instance for accessing the price oracle.
   IPriceOracle private priceOracle;
 
@@ -50,7 +51,7 @@ abstract contract TokenManagement is OwnableCheck, Initializable {
    * Can only be called by the protocol owner.
    * @param _tokens Array of token addresses to be enabled.
    */
-  function enableTokens(address[] calldata _tokens) external onlyProtocolOwner {
+  function enableTokens(address[] calldata _tokens) external onlyProtocolOwner firewallProtected {
     uint256 tokensLength = _tokens.length;
     for (uint256 i; i < tokensLength; i++) {
       address token = _tokens[i];
@@ -68,7 +69,7 @@ abstract contract TokenManagement is OwnableCheck, Initializable {
    * @notice Disables a token from interaction on the platform. Can only be called by the protocol owner.
    * @param _token Address of the token to be disabled.
    */
-  function disableToken(address _token) external onlyProtocolOwner {
+  function disableToken(address _token) external onlyProtocolOwner firewallProtected {
     if (_token == address(0)) revert ErrorLibrary.InvalidAddress();
     isEnabled[_token] = false;
     emit TokenDisabled(_token);

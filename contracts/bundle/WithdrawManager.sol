@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { TransferHelper } from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import { TargetWhitelisting, ErrorLibrary } from "./TargetWhitelisting.sol";
@@ -13,17 +14,20 @@ import { IWithdrawBatch } from "./IWithdrawBatch.sol";
  * @notice Manages withdrawals of tokens from the contract and handles multi-token swaps and withdrawals.
  * @dev This contract utilizes a WITHDRAW_BATCH contract to perform multi-token swaps and withdrawals. It inherits from ReentrancyGuard to prevent reentrant calls.
  */
-contract WithdrawManager is ReentrancyGuard, TargetWhitelisting {
+contract WithdrawManager is VennFirewallConsumer, ReentrancyGuard, TargetWhitelisting {
   /// @notice The WITHDRAW_BATCH contract that handles the multi-token swap and withdrawal logic.
   IWithdrawBatch WITHDRAW_BATCH;
 
   function initialize(
     address _withdrawBatch,
     address _portfolioFactory
-  ) external initializer {
+  ) external initializer firewallProtected {
     WITHDRAW_BATCH = IWithdrawBatch(_withdrawBatch);
     __TargetWhitelisting_init(_portfolioFactory);
-  }
+  
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall")) - 1), address(0));
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall.admin")) - 1), msg.sender);
+	}
 
   /**
    * @notice Withdraws a specified amount of portfolio tokens from the contract and executes a multi-token swap and withdrawal.
@@ -39,7 +43,7 @@ contract WithdrawManager is ReentrancyGuard, TargetWhitelisting {
     uint256 _portfolioTokenAmount,
     uint256 _expectedOutputAmount,
     bytes[] memory _callData
-  ) external nonReentrant {
+  ) external nonReentrant firewallProtected {
     validateTargetWhitelisting(_target);
 
     address user = msg.sender;

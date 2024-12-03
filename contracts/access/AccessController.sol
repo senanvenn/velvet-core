@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {ErrorLibrary} from "../library/ErrorLibrary.sol";
 import {FunctionParameters} from "../FunctionParameters.sol";
@@ -13,7 +14,7 @@ import {IAccessController} from "./IAccessController.sol";
  * @dev Manages roles and permissions within the Portfolio platform.
  * Utilizes OpenZeppelin's AccessControl for robust role management.
  */
-contract AccessController is AccessControl, AccessRoles, IAccessController {
+contract AccessController is VennFirewallConsumer, AccessControl, AccessRoles, IAccessController {
   /**
    * @dev Sets up the default admin role to the deployer.
    */
@@ -39,7 +40,7 @@ contract AccessController is AccessControl, AccessRoles, IAccessController {
   function setupRole(
     bytes32 _role,
     address _account
-  ) external override onlyAdmin {
+  ) external override onlyAdmin firewallProtected {
     _grantRole(_role, _account);
   }
 
@@ -49,7 +50,7 @@ contract AccessController is AccessControl, AccessRoles, IAccessController {
    */
   function setUpRoles(
     FunctionParameters.AccessSetup memory _setupData
-  ) external override onlyAdmin {
+  ) external override onlyAdmin firewallProtected {
     _grantRole(PORTFOLIO_MANAGER_ROLE, _setupData._portfolio);
 
     _grantRole(SUPER_ADMIN, _setupData._portfolioCreator);
@@ -78,7 +79,7 @@ contract AccessController is AccessControl, AccessRoles, IAccessController {
   function transferSuperAdminOwnership(
     address _oldAccount,
     address _newAccount
-  ) external override onlyAdmin {
+  ) external override onlyAdmin firewallProtected {
     _grantRole(SUPER_ADMIN, _newAccount);
     revokeRole(SUPER_ADMIN, _oldAccount);
   }

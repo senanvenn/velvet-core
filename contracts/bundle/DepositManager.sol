@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {TransferHelper} from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import {FunctionParameters} from "../FunctionParameters.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -11,7 +12,7 @@ import {IDepositBatch} from "./IDepositBatch.sol";
  * @notice Manages deposits of tokens into the contract and handles multi-token swaps and transfers.
  * @dev This contract utilizes a DEPOSIT_BATCH contract to perform multi-token swaps and transfers. It inherits from ReentrancyGuard to prevent reentrant calls.
  */
-contract DepositManager is ReentrancyGuard {
+contract DepositManager is VennFirewallConsumer, ReentrancyGuard {
   /// @notice The DEPOSIT_BATCH contract that handles the multi-token swap and transfer logic.
   IDepositBatch immutable DEPOSIT_BATCH;
 
@@ -33,7 +34,7 @@ contract DepositManager is ReentrancyGuard {
    */
   function deposit(
     FunctionParameters.BatchHandler memory data
-  ) external nonReentrant {
+  ) external nonReentrant firewallProtected {
     address _depositToken = data._depositToken;
     address user = msg.sender;
 

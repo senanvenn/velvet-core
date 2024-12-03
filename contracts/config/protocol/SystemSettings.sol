@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
 
 import {OwnableCheck} from "./OwnableCheck.sol";
@@ -10,7 +11,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/uti
  * @title SystemSettings
  * @dev Manages system-wide settings such as fees, cooldown periods, and limits.
  */
-abstract contract SystemSettings is OwnableCheck, Initializable {
+abstract contract SystemSettings is VennFirewallConsumer, OwnableCheck, Initializable {
   uint256 public minPortfolioTokenHoldingAmount;
   uint256 public cooldownPeriod;
   uint256 public minInitialPortfolioAmount;
@@ -48,7 +49,7 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
    */
   function setCoolDownPeriod(
     uint256 _newCooldownPeriod
-  ) external onlyProtocolOwner {
+  ) external onlyProtocolOwner firewallProtected {
     if (_newCooldownPeriod < 1 minutes || _newCooldownPeriod > 14 days)
       revert ErrorLibrary.InvalidCooldownPeriod();
     cooldownPeriod = _newCooldownPeriod;
@@ -78,7 +79,7 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
   function setEmergencyPause(
     bool _state,
     bool _unpauseProtocol
-  ) external virtual {
+  ) external virtual firewallProtected {
     bool callerIsOwner = _owner() == msg.sender;
     require(
       callerIsOwner ||
@@ -108,7 +109,7 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
    * @notice This function sets the limit for the number of assets that a fund can have
    * @param _assetLimit Maximum number of allowed assets in the fund
    */
-  function setAssetLimit(uint256 _assetLimit) external onlyProtocolOwner {
+  function setAssetLimit(uint256 _assetLimit) external onlyProtocolOwner firewallProtected {
     if (_assetLimit == 0) revert ErrorLibrary.InvalidAssetLimit();
     assetLimit = _assetLimit;
   }
@@ -119,7 +120,7 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
    */
   function setWhitelistLimit(
     uint256 _whitelistLimit
-  ) external onlyProtocolOwner {
+  ) external onlyProtocolOwner firewallProtected {
     if (_whitelistLimit == 0) revert ErrorLibrary.InvalidWhitelistLimit();
     whitelistLimit = _whitelistLimit;
   }
@@ -130,7 +131,7 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
    */
   function updateMinInitialPortfolioAmount(
     uint256 _amount
-  ) external virtual onlyProtocolOwner {
+  ) external virtual onlyProtocolOwner firewallProtected {
     if (_amount == 0) revert ErrorLibrary.InvalidMinPortfolioAmount();
     minInitialPortfolioAmount = _amount;
     emit MinInitialPortfolioAmountUpdated(_amount);
@@ -142,7 +143,7 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
    */
   function updateMinPortfolioTokenHoldingAmount(
     uint256 _newAmount
-  ) external virtual onlyProtocolOwner {
+  ) external virtual onlyProtocolOwner firewallProtected {
     if (_newAmount == 0)
       revert ErrorLibrary.InvalidMinPortfolioTokenHoldingAmount();
     minPortfolioTokenHoldingAmount = _newAmount;
@@ -155,7 +156,7 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
    */
   function updateAllowedDustTolerance(
     uint256 _allowedDustTolerance
-  ) external onlyProtocolOwner {
+  ) external onlyProtocolOwner firewallProtected {
     if (_allowedDustTolerance == 0 || _allowedDustTolerance > 1_000)
       revert ErrorLibrary.InvalidDustTolerance();
     allowedDustTolerance = _allowedDustTolerance;

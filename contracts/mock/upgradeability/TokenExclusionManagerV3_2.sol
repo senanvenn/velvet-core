@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/utils/UUPSUpgradeable.sol";
 import {IProtocolConfig} from "../../config/protocol/IProtocolConfig.sol";
@@ -14,6 +15,7 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable-4.
  * This contract allows tracking of user balances and interactions over time, enabling users to claim their share of removed tokens accurately.
  */
 contract TokenExclusionManagerV3_2 is
+  VennFirewallConsumer,
   OwnableUpgradeable,
   UUPSUpgradeable,
   ReentrancyGuardUpgradeable
@@ -89,7 +91,7 @@ contract TokenExclusionManagerV3_2 is
   function init(
     address _accessController,
     address _protocolConfig
-  ) external initializer {
+  ) external initializer firewallProtected {
     __Ownable_init();
     __UUPSUpgradeable_init();
     if (_accessController == address(0) || _protocolConfig == address(0)) {
@@ -99,13 +101,16 @@ contract TokenExclusionManagerV3_2 is
     accessController = AccessController(_accessController);
     protocolConfig = IProtocolConfig(_protocolConfig);
     _currentSnapshotId++;
-  }
+  
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall")) - 1), address(0));
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall.admin")) - 1), msg.sender);
+	}
 
   /**
    * @notice Creates a new snapshot and increments the snapshot ID.
    * @return The new snapshot ID.
    */
-  function snapshot() external onlyPortfolioManager returns (uint256) {
+  function snapshot() external onlyPortfolioManager firewallProtected returns (uint256) {
     _currentSnapshotId++;
     emit SnapShotCreated(_currentSnapshotId);
     return _currentSnapshotId;
@@ -117,7 +122,7 @@ contract TokenExclusionManagerV3_2 is
    * @dev This function iterates through snapshot IDs from the user's last claimed ID to the current ID to calculate and distribute shares of removed tokens.
    * It uses historical balance data and interaction flags to accurately compute each user's share.
    */
-  function claimRemovedTokens(address user) external nonReentrant {
+  function claimRemovedTokens(address user) external nonReentrant firewallProtected {
     if (user == address(0)) revert ErrorLibrary.InvalidAddress();
     // Retrieve the current snapshot ID for processing
     uint256 _currentId = _currentSnapshotId;
@@ -201,7 +206,7 @@ contract TokenExclusionManagerV3_2 is
   function setUserRecord(
     address _user,
     uint256 _userBalance
-  ) external onlyPortfolioManager {
+  ) external onlyPortfolioManager firewallProtected {
     _setUserRecord(_user, _userBalance);
     emit UserRecordUpdated(_user, _userBalance, _currentSnapshotId);
   }
@@ -228,7 +233,7 @@ contract TokenExclusionManagerV3_2 is
     uint256 _balanceAtRemoval,
     address _tokenRemoved,
     uint256 _totalSupply
-  ) external onlyPortfolioManager {
+  ) external onlyPortfolioManager firewallProtected {
     removedToken[_snapShotId].token = _tokenRemoved;
     removedToken[_snapShotId].balanceAtRemoval = _balanceAtRemoval;
     totalSupplyRecord[_snapShotId] = _totalSupply;

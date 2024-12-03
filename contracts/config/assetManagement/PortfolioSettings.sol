@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
 import {AssetManagerCheck} from "./AssetManagerCheck.sol";
 import {IProtocolConfig} from "../../config/protocol/IProtocolConfig.sol";
@@ -12,7 +13,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/uti
  * transferability, initial portfolio price, and minimum portfolio token amount. Ensures that
  * portfolios adhere to protocol-wide constraints and allows asset managers to update settings.
  */
-abstract contract PortfolioSettings is AssetManagerCheck, Initializable {
+abstract contract PortfolioSettings is VennFirewallConsumer, AssetManagerCheck, Initializable {
   IProtocolConfig private protocolConfig;
 
   // Indicates if the portfolio is open to the public
@@ -114,14 +115,14 @@ abstract contract PortfolioSettings is AssetManagerCheck, Initializable {
   function updateTransferability(
     bool _transferable,
     bool _publicTransfer
-  ) external onlyAssetManager {
+  ) external onlyAssetManager firewallProtected {
     _setTransferability(_transferable, _publicTransfer);
   }
 
   /**
    * Converts a private portfolio to a public one, enabling wider access.
    */
-  function convertPrivateFundToPublic() external onlyAssetManager {
+  function convertPrivateFundToPublic() external onlyAssetManager firewallProtected {
     publicPortfolio = true;
     if (transferable) {
       transferableToPublic = true;
@@ -135,7 +136,7 @@ abstract contract PortfolioSettings is AssetManagerCheck, Initializable {
    */
   function updateMinPortfolioTokenHoldingAmount(
     uint256 _minPortfolioTokenHoldingAmount
-  ) external onlyAssetManager {
+  ) external onlyAssetManager firewallProtected {
     if (
       _minPortfolioTokenHoldingAmount <
       protocolConfig.minPortfolioTokenHoldingAmount()
@@ -151,7 +152,7 @@ abstract contract PortfolioSettings is AssetManagerCheck, Initializable {
    */
   function updateInitialPortfolioAmount(
     uint256 _newAmount
-  ) external onlyAssetManager {
+  ) external onlyAssetManager firewallProtected {
     if (_newAmount < protocolConfig.minInitialPortfolioAmount())
       revert ErrorLibrary.InvalidInitialPortfolioAmount();
 

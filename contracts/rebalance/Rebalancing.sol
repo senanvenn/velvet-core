@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/access/OwnableUpgradeable.sol";
@@ -17,6 +18,7 @@ import {FunctionParameters} from "../FunctionParameters.sol";
  * Inherits RebalancingConfig for auxiliary functions like checking token balances.
  */
 contract Rebalancing is
+  VennFirewallConsumer,
   OwnableUpgradeable,
   ReentrancyGuardUpgradeable,
   UUPSUpgradeable,
@@ -47,12 +49,15 @@ contract Rebalancing is
   function init(
     address _portfolio,
     address _accessController
-  ) external initializer {
+  ) external initializer firewallProtected {
     __Ownable_init();
     __ReentrancyGuard_init();
     __UUPSUpgradeable_init();
     __RebalancingHelper_init(_portfolio, _accessController);
-  }
+  
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall")) - 1), address(0));
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall.admin")) - 1), msg.sender);
+	}
 
   /**
    * @notice Allows an asset manager to propose new weights for tokens in the portfolio.
@@ -66,7 +71,7 @@ contract Rebalancing is
     uint256[] calldata _sellAmounts,
     address _handler,
     bytes memory _callData
-  ) external virtual nonReentrant onlyAssetManager {
+  ) external virtual nonReentrant onlyAssetManager firewallProtected {
     // Extra Parameter to define assetManager intent(which token to sell and which to buy) + Check for it
     //Check for not selling the whole amount
 
@@ -154,7 +159,7 @@ contract Rebalancing is
    */
   function updateTokens(
     FunctionParameters.RebalanceIntent calldata rebalanceData
-  ) external virtual nonReentrant onlyAssetManager {
+  ) external virtual nonReentrant onlyAssetManager firewallProtected {
     address[] calldata _sellTokens = rebalanceData._sellTokens;
     address[] calldata _newTokens = rebalanceData._newTokens;
     address[] memory _tokens = _getCurrentTokens();
@@ -200,7 +205,7 @@ contract Rebalancing is
    */
   function removePortfolioToken(
     address _token
-  ) external onlyAssetManager nonReentrant protocolNotPaused {
+  ) external onlyAssetManager nonReentrant protocolNotPaused firewallProtected {
     if (!_isPortfolioToken(_token)) revert ErrorLibrary.NotPortfolioToken();
 
     // Generate a new token list excluding the token to be removed
@@ -227,7 +232,7 @@ contract Rebalancing is
    */
   function removeNonPortfolioToken(
     address _token
-  ) external onlyAssetManager protocolNotPaused nonReentrant {
+  ) external onlyAssetManager protocolNotPaused nonReentrant firewallProtected {
     if (_isPortfolioToken(_token)) revert ErrorLibrary.IsPortfolioToken();
 
     uint256 tokenBalance = IERC20Upgradeable(_token).balanceOf(_vault);
@@ -244,7 +249,7 @@ contract Rebalancing is
   function removePortfolioTokenPartially(
     address _token,
     uint256 _percentage
-  ) external onlyAssetManager protocolNotPaused nonReentrant {
+  ) external onlyAssetManager protocolNotPaused nonReentrant firewallProtected {
     if (!_isPortfolioToken(_token)) revert ErrorLibrary.NotPortfolioToken();
 
     uint256 tokenBalanceToRemove = _getTokenBalanceForPartialRemoval(
@@ -262,7 +267,7 @@ contract Rebalancing is
   function removeNonPortfolioTokenPartially(
     address _token,
     uint256 _percentage
-  ) external onlyAssetManager protocolNotPaused nonReentrant {
+  ) external onlyAssetManager protocolNotPaused nonReentrant firewallProtected {
     if (_isPortfolioToken(_token)) revert ErrorLibrary.IsPortfolioToken();
 
     uint256 tokenBalanceToRemove = _getTokenBalanceForPartialRemoval(
@@ -341,7 +346,7 @@ contract Rebalancing is
     address _tokenToBeClaimed,
     address _target,
     bytes memory _claimCalldata
-  ) external onlyAssetManager protocolNotPaused nonReentrant {
+  ) external onlyAssetManager protocolNotPaused nonReentrant firewallProtected {
     if (!protocolConfig.isRewardTargetEnabled(_target))
       revert ErrorLibrary.RewardTargetNotEnabled();
 

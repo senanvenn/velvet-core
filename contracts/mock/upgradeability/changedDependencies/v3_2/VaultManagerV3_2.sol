@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/token/ERC20/IERC20Upgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/security/ReentrancyGuardUpgradeable.sol";
 
@@ -23,6 +24,7 @@ import {IAllowanceTransfer} from "../../../../core/interfaces/IAllowanceTransfer
  * Combines configurations, calculations, fee handling, and token operations.
  */
 abstract contract VaultManagerV3_2 is
+  VennFirewallConsumer,
   VaultConfig,
   VaultCalculations,
   FeeManager,
@@ -60,7 +62,7 @@ abstract contract VaultManagerV3_2 is
     uint256 _minMintAmount,
     IAllowanceTransfer.PermitBatch calldata _permit,
     bytes calldata _signature
-  ) external virtual nonReentrant {
+  ) external virtual nonReentrant firewallProtected {
     _multiTokenDeposit(
       _depositor,
       _depositFor,
@@ -87,7 +89,7 @@ abstract contract VaultManagerV3_2 is
     uint256 _minMintAmount,
     IAllowanceTransfer.PermitBatch calldata _permit,
     bytes calldata _signature
-  ) external virtual nonReentrant {
+  ) external virtual nonReentrant firewallProtected {
     _multiTokenDeposit(
       msg.sender,
       msg.sender,
@@ -166,7 +168,7 @@ abstract contract VaultManagerV3_2 is
    */
   function multiTokenWithdrawal(
     uint256 _portfolioTokenAmount
-  ) external virtual nonReentrant {
+  ) external virtual nonReentrant firewallProtected {
     // Retrieve the list of tokens currently in the portfolio.
     address[] memory portfolioTokens = tokens;
 
@@ -262,7 +264,7 @@ abstract contract VaultManagerV3_2 is
     address _token,
     uint256 _amount,
     address _to
-  ) external onlyRebalancerContract {
+  ) external onlyRebalancerContract firewallProtected {
     _pullFromVault(_token, _amount, _to);
   }
 

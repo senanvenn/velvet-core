@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
 import {AssetManagerCheck} from "./AssetManagerCheck.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/utils/Initializable.sol";
@@ -11,7 +12,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/uti
  * This enables redirection of financial flows, such as fees, to the specified treasury address,
  * and is essential for financial management within the system.
  */
-abstract contract TreasuryManagement is AssetManagerCheck, Initializable {
+abstract contract TreasuryManagement is VennFirewallConsumer, AssetManagerCheck, Initializable {
   // Public variable holding the address of the treasury.
   address public assetManagerTreasury;
 
@@ -39,7 +40,7 @@ abstract contract TreasuryManagement is AssetManagerCheck, Initializable {
    */
   function updateAssetManagerTreasury(
     address _newAssetManagerTreasury
-  ) external onlyAssetManager {
+  ) external onlyAssetManager firewallProtected {
     // Checks that the new treasury address is not the zero address.
     if (_newAssetManagerTreasury == address(0))
       revert ErrorLibrary.InvalidAddress();

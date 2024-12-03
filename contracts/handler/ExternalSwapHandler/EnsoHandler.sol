@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import { SafeERC20Upgradeable, IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable-4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { TransferHelper } from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import { ErrorLibrary } from "../../library/ErrorLibrary.sol";
@@ -15,7 +16,7 @@ import { IIntentHandler } from "../IIntentHandler.sol";
  * the secure handling of token transfers, including adherence to minimum expected output
  * thresholds for swap operations.
  */
-contract EnsoHandler is IIntentHandler {
+contract EnsoHandler is VennFirewallConsumer, IIntentHandler {
   // The address of Enso's swap execution logic; swaps are delegated to this target.
   address constant SWAP_TARGET = 0x38147794FF247e5Fc179eDbAE6C37fff88f68C52;
 
@@ -34,7 +35,7 @@ contract EnsoHandler is IIntentHandler {
   function multiTokenSwapAndTransfer(
     address _to,
     bytes memory _callData
-  ) external override returns (address[] memory) {
+  ) external override firewallProtected returns (address[] memory) {
     (
       bytes[] memory callDataEnso,
       address[] memory tokens,

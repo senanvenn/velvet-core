@@ -10,10 +10,11 @@
  */
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {Module, Enum} from "@gnosis.pm/zodiac/contracts/core/Module.sol";
 import {ErrorLibrary} from "../library/ErrorLibrary.sol";
 
-contract VelvetSafeModule is Module {
+contract VelvetSafeModule is VennFirewallConsumer, Module {
   address public multiSendLibrary;
 
   /**
@@ -38,7 +39,7 @@ contract VelvetSafeModule is Module {
   function executeWallet(
     address handlerAddresses,
     bytes calldata encodedCalls
-  ) external onlyOwner returns (bool isSuccess, bytes memory data) {
+  ) external onlyOwner firewallProtected returns (bool isSuccess, bytes memory data) {
     (isSuccess, data) = execAndReturnData(
       handlerAddresses,
       0,

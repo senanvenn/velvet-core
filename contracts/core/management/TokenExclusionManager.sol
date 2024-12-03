@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/utils/UUPSUpgradeable.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
@@ -23,6 +24,7 @@ import {ITokenRemovalVault} from "../../vault/ITokenRemovalVault.sol";
  * This contract allows tracking of user balances and interactions over time, enabling users to claim their share of removed tokens accurately.
  */
 contract TokenExclusionManager is
+  VennFirewallConsumer,
   OwnableUpgradeable,
   ReentrancyGuardUpgradeable,
   UUPSUpgradeable,
@@ -103,7 +105,7 @@ contract TokenExclusionManager is
     address _accessController,
     address _protocolConfig,
     address _baseTokenRemovalVaultImplementation
-  ) external override initializer {
+  ) external override initializer firewallProtected {
     __Ownable_init();
     __ReentrancyGuard_init();
     __UUPSUpgradeable_init();
@@ -116,13 +118,16 @@ contract TokenExclusionManager is
     _currentSnapshotId++;
 
     baseTokenRemovalVaultImplementation = _baseTokenRemovalVaultImplementation;
-  }
+  
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall")) - 1), address(0));
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall.admin")) - 1), msg.sender);
+	}
 
   /**
    * @notice Creates a new snapshot and increments the snapshot ID.
    * @return The new snapshot ID.
    */
-  function snapshot() external override onlyPortfolioManager returns (uint256) {
+  function snapshot() external override onlyPortfolioManager firewallProtected returns (uint256) {
     _currentSnapshotId++;
     emit SnapShotCreated(_currentSnapshotId);
     return _currentSnapshotId;
@@ -141,7 +146,7 @@ contract TokenExclusionManager is
     address user,
     uint256 startId,
     uint256 endId
-  ) external nonReentrant {
+  ) external nonReentrant firewallProtected {
     if (protocolConfig.isProtocolEmergencyPaused())
       revert ErrorLibrary.ProtocolIsPaused();
 
@@ -182,7 +187,7 @@ contract TokenExclusionManager is
    * - There must be at least two snapshots (`_currentSnapshotId` >= 2).
    * - `id` must be less than the current snapshot ID.
    */
-  function claimTokenAtId(address user, uint256 id) external nonReentrant {
+  function claimTokenAtId(address user, uint256 id) external nonReentrant firewallProtected {
     if (user == address(0)) revert ErrorLibrary.InvalidAddress();
     // Retrieve the current snapshot ID for processing
     uint256 _currentId = _currentSnapshotId;
@@ -202,7 +207,7 @@ contract TokenExclusionManager is
   function setUserRecord(
     address _user,
     uint256 _userBalance
-  ) external override onlyPortfolioManager {
+  ) external override onlyPortfolioManager firewallProtected {
     _setUserRecordAtId(_user, _userBalance, _currentSnapshotId);
     emit UserRecordUpdated(_user, _userBalance, _currentSnapshotId);
   }
@@ -219,7 +224,7 @@ contract TokenExclusionManager is
     address _tokenRemoved,
     address _vault,
     uint256 _totalSupply
-  ) external override onlyPortfolioManager {
+  ) external override onlyPortfolioManager firewallProtected {
     removedToken[_snapShotId].token = _tokenRemoved;
     removedToken[_snapShotId].vault = _vault;
     removedToken[_snapShotId].totalSupply = _totalSupply;
@@ -357,6 +362,7 @@ contract TokenExclusionManager is
     external
     override
     onlyPortfolioManager
+    firewallProtected
     returns (address)
   {
     ITokenRemovalVault tokenRemovalVault = ITokenRemovalVault(

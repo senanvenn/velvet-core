@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/access/Ownable2StepUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/utils/UUPSUpgradeable.sol";
 
@@ -18,6 +19,7 @@ import {RewardTargetManagement} from "./RewardTargetManagement.sol";
  * @dev Main contract integrating all management functionalities with access control.
  */
 contract ProtocolConfig is
+  VennFirewallConsumer,
   Ownable2StepUpgradeable,
   UUPSUpgradeable,
   OracleManagement,
@@ -37,7 +39,7 @@ contract ProtocolConfig is
   function initialize(
     address _velvetTreasury,
     address _oracle
-  ) external initializer {
+  ) external initializer firewallProtected {
     __Ownable2Step_init();
     __UUPSUpgradeable_init();
     __OracleManagement_init(_oracle);
@@ -45,7 +47,10 @@ contract ProtocolConfig is
     __SystemSettings_init();
     __TokenManagement_init(_oracle);
     __FeeManagement_init();
-  }
+  
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall")) - 1), address(0));
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall.admin")) - 1), msg.sender);
+	}
 
   function _owner() internal view override(OwnableCheck) returns (address) {
     return owner();

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/utils/UUPSUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/security/ReentrancyGuardUpgradeable.sol";
@@ -19,6 +20,7 @@ import {AccessRoles} from "../../../../access/AccessRoles.sol";
  * Integrates with the system's components for fee management.
  */
 abstract contract FeeConfigV3_2 is
+  VennFirewallConsumer,
   OwnableUpgradeable,
   UUPSUpgradeable,
   AccessRoles,
@@ -116,7 +118,7 @@ abstract contract FeeConfigV3_2 is
    */
   function updateHighWaterMark(
     uint256 _currentPrice
-  ) external onlyPortfolioManager {
+  ) external onlyPortfolioManager firewallProtected {
     _updateHighWaterMark(_currentPrice);
   }
 

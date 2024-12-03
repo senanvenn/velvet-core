@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
 
 import {OwnableCheck} from "./OwnableCheck.sol";
@@ -10,7 +11,7 @@ import {OwnableCheck} from "./OwnableCheck.sol";
  * @notice Manages solver handlers, enabling or disabling them as needed for platform operations.
  * Solvers play a crucial role in executing complex operations and strategies on the platform.
  */
-abstract contract SolverManagement is OwnableCheck {
+abstract contract SolverManagement is VennFirewallConsumer, OwnableCheck {
   mapping(address => bool) public solverHandler;
 
   event SolverHandlerEnabled(address indexed handler);
@@ -31,7 +32,7 @@ abstract contract SolverManagement is OwnableCheck {
    * @param _handler The address of the solver handler to enable.
    * @dev Reverts if the provided handler address is invalid (address(0)).
    */
-  function enableSolverHandler(address _handler) external onlyProtocolOwner {
+  function enableSolverHandler(address _handler) external onlyProtocolOwner firewallProtected {
     if (_handler == address(0)) revert ErrorLibrary.InvalidAddress();
     solverHandler[_handler] = true;
     emit SolverHandlerEnabled(_handler);
@@ -43,7 +44,7 @@ abstract contract SolverManagement is OwnableCheck {
    */
   function disableSolverHandler(
     address _handler
-  ) external virtual onlyProtocolOwner {
+  ) external virtual onlyProtocolOwner firewallProtected {
     if (_handler == address(0)) revert ErrorLibrary.InvalidAddress();
 
     solverHandler[_handler] = false;

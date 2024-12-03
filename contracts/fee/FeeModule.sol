@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {FeeConfig} from "./FeeConfig.sol";
 import {FeeCalculations} from "./FeeCalculations.sol";
 import {IPriceOracle} from "../oracle/IPriceOracle.sol";
@@ -10,7 +11,7 @@ import {ErrorLibrary} from "../library/ErrorLibrary.sol";
  * @title FeeModule
  * @dev Manages the minting of fees for different operations, utilizing configurations from FeeConfig and calculations from FeeCalculations.
  */
-contract FeeModule is FeeConfig, FeeCalculations {
+contract FeeModule is VennFirewallConsumer, FeeConfig, FeeCalculations {
   /**
    * @dev Initializes the fee module, setting up the required configurations.
    * @param _portfolio The address of the Portfolio contract.
@@ -23,7 +24,7 @@ contract FeeModule is FeeConfig, FeeCalculations {
     address _assetManagementConfig,
     address _protocolConfig,
     address _accessController
-  ) external {
+  ) external firewallProtected {
     FeeConfig._initialize(
       _portfolio,
       _assetManagementConfig,
@@ -116,6 +117,7 @@ contract FeeModule is FeeConfig, FeeCalculations {
   function chargeProtocolAndManagementFeesProtocol()
     external
     onlyPortfolioManager
+    firewallProtected
   {
     _chargeProtocolAndManagementFees();
   }
@@ -127,6 +129,7 @@ contract FeeModule is FeeConfig, FeeCalculations {
   function chargeProtocolAndManagementFees()
     external
     protocolNotEmergencyPaused
+    firewallProtected
   {
     _chargeProtocolAndManagementFees();
   }
@@ -140,7 +143,7 @@ contract FeeModule is FeeConfig, FeeCalculations {
   function _chargeEntryOrExitFee(
     uint256 _mintAmount,
     uint256 _fee
-  ) external nonReentrant onlyPortfolioManager returns (uint256 userAmount) {
+  ) external nonReentrant onlyPortfolioManager firewallProtected returns (uint256 userAmount) {
     uint256 entryOrExitFee = _calculateEntryOrExitFee(_fee, _mintAmount);
     (uint256 protocolFee, uint256 assetManagerFee) = _splitFee(
       entryOrExitFee,
@@ -165,6 +168,7 @@ contract FeeModule is FeeConfig, FeeCalculations {
     onlyAssetManager
     protocolNotEmergencyPaused
     nonReentrant
+    firewallProtected
   {
     uint256 totalSupply = portfolio.totalSupply();
 

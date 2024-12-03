@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/token/ERC20/ERC20Upgradeable.sol";
 import {AccessModifiers} from "../access/AccessModifiers.sol";
 import {CooldownManager, ErrorLibrary} from "../cooldown/CooldownManager.sol";
@@ -14,6 +15,7 @@ import {UserManagement} from "../user/UserManagement.sol";
  * cooldown periods, dependency configurations, and user-related functionalities.
  */
 abstract contract PortfolioToken is
+  VennFirewallConsumer,
   ERC20Upgradeable,
   AccessModifiers,
   CooldownManager,
@@ -34,7 +36,7 @@ abstract contract PortfolioToken is
    * @param _to The recipient address.
    * @param _amount The amount of tokens to mint.
    */
-  function mintShares(address _to, uint256 _amount) external onlyMinter {
+  function mintShares(address _to, uint256 _amount) external onlyMinter firewallProtected {
     _mint(_to, _amount);
   }
 

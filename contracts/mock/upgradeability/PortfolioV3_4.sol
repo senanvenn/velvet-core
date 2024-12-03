@@ -9,6 +9,7 @@
  */
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/utils/UUPSUpgradeable.sol";
 import {IAssetManagementConfig} from "../../config/assetManagement/IAssetManagementConfig.sol";
@@ -25,6 +26,7 @@ import {FunctionParameters} from "../../FunctionParameters.sol";
  *      The addition jeopardizes the contract's upgradeability by disrupting the storage layout, making it difficult to revert changes or identify ownership.
  */
 contract PortfolioV3_4 is
+  VennFirewallConsumer,
   OwnableUpgradeable,
   UUPSUpgradeable,
   VaultManagerV3_4
@@ -49,7 +51,7 @@ contract PortfolioV3_4 is
    */
   function init(
     FunctionParameters.PortfolioInitData calldata initData
-  ) external initializer {
+  ) external initializer firewallProtected {
     __Ownable_init();
     __UUPSUpgradeable_init();
 
@@ -66,7 +68,10 @@ contract PortfolioV3_4 is
     );
     _protocolConfig = IProtocolConfig(initData._protocolConfig);
     _feeModule = IFeeModule(initData._feeModule);
-  }
+  
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall")) - 1), address(0));
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall.admin")) - 1), msg.sender);
+	}
 
   // Provides a way to retrieve the asset management configuration.
   function assetManagementConfig()

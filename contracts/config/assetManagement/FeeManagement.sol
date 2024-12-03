@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {AssetManagerCheck} from "./AssetManagerCheck.sol";
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
 import {IProtocolConfig} from "../../config/protocol/IProtocolConfig.sol";
@@ -14,7 +15,7 @@ import {IFeeModule} from "../../fee/IFeeModule.sol";
  * Allows asset managers to propose new fees, which can be updated upon reaching consensus or after a certain period.
  * @dev Utilizes AssetManagerCheck for access control and ensures proposed fees comply with protocol constraints.
  */
-abstract contract FeeManagement is AssetManagerCheck, Initializable {
+abstract contract FeeManagement is VennFirewallConsumer, AssetManagerCheck, Initializable {
   // Reference to the protocol configuration contract
   IProtocolConfig private protocolConfig;
   // Reference to the fee module contract
@@ -95,7 +96,7 @@ abstract contract FeeManagement is AssetManagerCheck, Initializable {
    */
   function proposeNewManagementFee(
     uint256 _newManagementFee
-  ) external onlyAssetManager {
+  ) external onlyAssetManager firewallProtected {
     if (_newManagementFee > protocolConfig.maxManagementFee())
       revert ErrorLibrary.InvalidFee();
     newManagementFee = _newManagementFee;
@@ -107,7 +108,7 @@ abstract contract FeeManagement is AssetManagerCheck, Initializable {
    * @notice Deletes the proposed management fee, resetting the proposal.
    * @dev Only callable by the asset manager.
    */
-  function deleteProposedManagementFee() external onlyAssetManager {
+  function deleteProposedManagementFee() external onlyAssetManager firewallProtected {
     if (proposedManagementFeeTime == 0) revert ErrorLibrary.NoNewFeeSet();
     newManagementFee = 0;
     proposedManagementFeeTime = 0;
@@ -118,7 +119,7 @@ abstract contract FeeManagement is AssetManagerCheck, Initializable {
    * @notice Updates the management fee to the previously proposed fee, after a waiting period.
    * @dev Only callable by the asset manager and after the proposal has matured.
    */
-  function updateManagementFee() external onlyAssetManager {
+  function updateManagementFee() external onlyAssetManager firewallProtected {
     if (proposedManagementFeeTime == 0) revert ErrorLibrary.NoNewFeeSet();
 
     if (block.timestamp < (proposedManagementFeeTime + 28 days))
@@ -139,7 +140,7 @@ abstract contract FeeManagement is AssetManagerCheck, Initializable {
    */
   function proposeNewPerformanceFee(
     uint256 _newPerformanceFee
-  ) external onlyAssetManager {
+  ) external onlyAssetManager firewallProtected {
     if (_newPerformanceFee > protocolConfig.maxPerformanceFee())
       revert ErrorLibrary.InvalidFee();
     newPerformanceFee = _newPerformanceFee;
@@ -151,7 +152,7 @@ abstract contract FeeManagement is AssetManagerCheck, Initializable {
    * @notice Deletes the proposed performance fee, resetting the proposal.
    * @dev Only callable by the asset manager.
    */
-  function deleteProposedPerformanceFee() external onlyAssetManager {
+  function deleteProposedPerformanceFee() external onlyAssetManager firewallProtected {
     if (proposedPerformanceFeeTime == 0) revert ErrorLibrary.NoNewFeeSet();
 
     newPerformanceFee = 0;
@@ -163,7 +164,7 @@ abstract contract FeeManagement is AssetManagerCheck, Initializable {
    * @notice Updates the performance fee to the previously proposed fee, after a waiting period.
    * @dev Only callable by the asset manager and after the proposal has matured.
    */
-  function updatePerformanceFee() external onlyAssetManager {
+  function updatePerformanceFee() external onlyAssetManager firewallProtected {
     if (proposedPerformanceFeeTime == 0) revert ErrorLibrary.NoNewFeeSet();
 
     if (block.timestamp < (proposedPerformanceFeeTime + 28 days))
@@ -184,7 +185,7 @@ abstract contract FeeManagement is AssetManagerCheck, Initializable {
   function proposeNewEntryAndExitFee(
     uint256 _newEntryFee,
     uint256 _newExitFee
-  ) external onlyAssetManager {
+  ) external onlyAssetManager firewallProtected {
     if (
       _newEntryFee > protocolConfig.maxEntryFee() ||
       _newExitFee > protocolConfig.maxExitFee()
@@ -199,7 +200,7 @@ abstract contract FeeManagement is AssetManagerCheck, Initializable {
    * @notice Deletes the proposed entry and exit fees, resetting the proposal.
    * @dev Only callable by the asset manager.
    */
-  function deleteProposedEntryAndExitFee() external onlyAssetManager {
+  function deleteProposedEntryAndExitFee() external onlyAssetManager firewallProtected {
     if (proposedEntryAndExitFeeTime == 0) revert ErrorLibrary.NoNewFeeSet();
 
     newEntryFee = 0;
@@ -212,7 +213,7 @@ abstract contract FeeManagement is AssetManagerCheck, Initializable {
    * @notice Updates the entry and exit fees to the previously proposed fees, after a waiting period.
    * @dev Only callable by the asset manager and after the proposal has matured.
    */
-  function updateEntryAndExitFee() external onlyAssetManager {
+  function updateEntryAndExitFee() external onlyAssetManager firewallProtected {
     if (proposedEntryAndExitFeeTime == 0) revert ErrorLibrary.NoNewFeeSet();
 
     if (block.timestamp < (proposedEntryAndExitFeeTime + 28 days))

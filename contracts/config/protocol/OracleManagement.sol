@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {IPriceOracle} from "../../oracle/IPriceOracle.sol";
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
 
@@ -12,7 +13,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/uti
  * @notice Handles updating and interacting with the price oracle for the platform.
  * Allows updating the oracle address used across the platform for price data.
  */
-abstract contract OracleManagement is OwnableCheck, Initializable {
+abstract contract OracleManagement is VennFirewallConsumer, OwnableCheck, Initializable {
   IPriceOracle public oracle;
 
   event OracleUpdated(address indexed oldOracle, address indexed newOracle);
@@ -26,7 +27,7 @@ abstract contract OracleManagement is OwnableCheck, Initializable {
    * @dev Updates the price oracle contract address.
    * @param _newOracle Address of the new price oracle contract.
    */
-  function updatePriceOracle(address _newOracle) external onlyProtocolOwner {
+  function updatePriceOracle(address _newOracle) external onlyProtocolOwner firewallProtected {
     _updatePriceOracle(_newOracle);
     emit OracleUpdated(address(oracle), _newOracle);
   }

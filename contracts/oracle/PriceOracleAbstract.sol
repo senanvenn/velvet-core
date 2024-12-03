@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import {AggregatorV2V3Interface, AggregatorInterface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol";
@@ -12,7 +13,7 @@ import {ErrorLibrary} from "../library/ErrorLibrary.sol";
  * @dev Abstract contract for integrating Chainlink price feeds.
  * Allows adding, updating, and fetching price feeds for various token pairs.
  */
-abstract contract PriceOracleAbstract is Ownable {
+abstract contract PriceOracleAbstract is VennFirewallConsumer, Ownable {
   // Custom errors for contract-specific failure conditions.
   error AggregatorAlreadyExistsError();
   error InvalidAddressError();
@@ -67,7 +68,7 @@ abstract contract PriceOracleAbstract is Ownable {
     address[] memory bases,
     address[] memory quotes,
     AggregatorV2V3Interface[] memory aggregators
-  ) external onlyOwner {
+  ) external onlyOwner firewallProtected {
     if (!(bases.length == quotes.length && quotes.length == aggregators.length))
       revert ErrorLibrary.IncorrectArrayLength();
 
@@ -105,7 +106,7 @@ abstract contract PriceOracleAbstract is Ownable {
     address base,
     address quote,
     AggregatorV2V3Interface aggregator
-  ) external onlyOwner {
+  ) external onlyOwner firewallProtected {
     if (
       base == address(0) ||
       quote == address(0) ||
@@ -124,7 +125,7 @@ abstract contract PriceOracleAbstract is Ownable {
    */
   function updateOracleExpirationThreshold(
     uint256 _newTimeout
-  ) external onlyOwner {
+  ) external onlyOwner firewallProtected {
     oracleExpirationThreshold = _newTimeout;
     emit OracleExpirationThresholdUpdated(oracleExpirationThreshold);
   }

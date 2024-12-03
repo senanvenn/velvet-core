@@ -2,6 +2,7 @@
 pragma solidity 0.8.17;
 
 // Importing AccessModifiers for role-based access control.
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {AccessModifiers} from "../access/AccessModifiers.sol";
 // Importing ChecksAndValidations for performing various checks and validations across the system.
 import {ChecksAndValidations} from "../checks/ChecksAndValidations.sol";
@@ -15,7 +16,7 @@ import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
  * Handles initialization and updating of _tokens within the vault. Maintains a list of _tokens
  * associated with the vault and provides mechanisms to update these _tokens securely.
  */
-abstract contract VaultConfig is AccessModifiers, ChecksAndValidations {
+abstract contract VaultConfig is VennFirewallConsumer, AccessModifiers, ChecksAndValidations {
   // Array storing addresses of underlying _tokens in the vault.
   address[] internal tokens;
 
@@ -65,7 +66,7 @@ abstract contract VaultConfig is AccessModifiers, ChecksAndValidations {
    * @param _tokens Array of token addresses to initialize the vault.
    * Only callable by the super admin. Checks for the maximum asset limit and prevents re-initialization.
    */
-  function initToken(address[] calldata _tokens) external onlySuperAdmin {
+  function initToken(address[] calldata _tokens) external onlySuperAdmin firewallProtected {
     uint256 _assetLimit = protocolConfig().assetLimit();
     uint256 tokensLength = _tokens.length;
     if (tokensLength > _assetLimit)
@@ -93,7 +94,7 @@ abstract contract VaultConfig is AccessModifiers, ChecksAndValidations {
    */
   function updateTokenList(
     address[] calldata _tokens
-  ) external onlyRebalancerContract {
+  ) external onlyRebalancerContract firewallProtected {
     uint256 _assetLimit = protocolConfig().assetLimit();
     uint256 tokenLength = _tokens.length;
 

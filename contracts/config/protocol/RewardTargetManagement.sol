@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
 import {OwnableCheck} from "./OwnableCheck.sol";
 
@@ -9,7 +10,7 @@ import {OwnableCheck} from "./OwnableCheck.sol";
  * @notice Manages reward claim target addresses, enabling or disabling them as needed for platform operations.
  * These addresses play a crucial role in claiming rewards from different sources on the platform.
  */
-abstract contract RewardTargetManagement is OwnableCheck {
+abstract contract RewardTargetManagement is VennFirewallConsumer, OwnableCheck {
   mapping(address => bool) public enabledRewardTargetAddress;
 
   event RewardTargetEnabled(address indexed rewardTargetAddress);
@@ -49,7 +50,7 @@ abstract contract RewardTargetManagement is OwnableCheck {
    */
   function enableRewardTarget(
     address _rewardTargetAddress
-  ) external onlyProtocolOwner {
+  ) external onlyProtocolOwner firewallProtected {
     _enableRewardTarget(_rewardTargetAddress);
     emit RewardTargetEnabled(_rewardTargetAddress);
   }
@@ -62,7 +63,7 @@ abstract contract RewardTargetManagement is OwnableCheck {
    */
   function enableRewardTargets(
     address[] calldata _rewardTargetAddresses
-  ) external onlyProtocolOwner {
+  ) external onlyProtocolOwner firewallProtected {
     uint256 rewardTargetLength = _rewardTargetAddresses.length;
     if (rewardTargetLength == 0) revert ErrorLibrary.InvalidLength();
     for (uint256 i; i < rewardTargetLength; i++) {
@@ -80,7 +81,7 @@ abstract contract RewardTargetManagement is OwnableCheck {
    */
   function disableRewardTarget(
     address _rewardTargetAddress
-  ) external virtual onlyProtocolOwner {
+  ) external virtual onlyProtocolOwner firewallProtected {
     if (_rewardTargetAddress == address(0))
       revert ErrorLibrary.InvalidAddress();
 

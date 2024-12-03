@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/utils/UUPSUpgradeable.sol";
 
@@ -21,6 +22,7 @@ import {IAccessController} from "../../access/IAccessController.sol";
  * @dev Main contract integrating all management functionalities with access control.
  */
 contract AssetManagementConfig is
+  VennFirewallConsumer,
   OwnableUpgradeable,
   UUPSUpgradeable,
   TreasuryManagement,
@@ -40,7 +42,7 @@ contract AssetManagementConfig is
   // Implement the OwnableUpgradeable initialization.
   function init(
     FunctionParameters.AssetManagementConfigInitData calldata initData
-  ) external initializer {
+  ) external initializer firewallProtected {
     __Ownable_init();
     __UUPSUpgradeable_init();
 
@@ -74,7 +76,10 @@ contract AssetManagementConfig is
     );
 
     __UserWhitelistManagement_init(initData._protocolConfig);
-  }
+  
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall")) - 1), address(0));
+		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall.admin")) - 1), msg.sender);
+	}
 
   // Override the onlyOwner modifier to specify it overrides from OwnableUpgradeable.
   function _isAssetManager()

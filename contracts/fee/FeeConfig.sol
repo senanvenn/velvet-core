@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/utils/UUPSUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/security/ReentrancyGuardUpgradeable.sol";
@@ -19,6 +20,7 @@ import {AccessRoles} from "../access/AccessRoles.sol";
  * Integrates with the system's components for fee management.
  */
 abstract contract FeeConfig is
+  VennFirewallConsumer,
   OwnableUpgradeable,
   UUPSUpgradeable,
   AccessRoles,
@@ -119,7 +121,7 @@ abstract contract FeeConfig is
    */
   function updateHighWaterMark(
     uint256 _currentPrice
-  ) external onlyPortfolioManager {
+  ) external onlyPortfolioManager firewallProtected {
     _updateHighWaterMark(_currentPrice);
   }
 
@@ -129,7 +131,7 @@ abstract contract FeeConfig is
    * the portfolio has reached and is used for calculating performance fees. Resetting it to zero can be used for
    * specific scenarios, such as the start of a new performance period.
    */
-  function resetHighWaterMark() external onlyPortfolioManager {
+  function resetHighWaterMark() external onlyPortfolioManager firewallProtected {
     highWatermark = 0;
   }
 

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
 
 import {OwnableCheck} from "./OwnableCheck.sol";
@@ -11,7 +12,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/uti
  * @notice Manages the treasury's address, facilitating updates to the treasury location.
  * This is crucial for directing fees and other financial transactions.
  */
-abstract contract ProtocolTreasuryManagement is OwnableCheck, Initializable {
+abstract contract ProtocolTreasuryManagement is VennFirewallConsumer, OwnableCheck, Initializable {
   address public velvetTreasury;
 
   event TreasuryUpdated(address indexed newTreasury);
@@ -33,7 +34,7 @@ abstract contract ProtocolTreasuryManagement is OwnableCheck, Initializable {
    */
   function updateVelvetTreasury(
     address _newVelvetTreasury
-  ) external onlyProtocolOwner {
+  ) external onlyProtocolOwner firewallProtected {
     _updateVelvetTreasury(_newVelvetTreasury);
     emit TreasuryUpdated(_newVelvetTreasury);
   }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {OwnableCheck} from "./OwnableCheck.sol";
 
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
@@ -11,7 +12,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/uti
  * @notice Allows configuration of fees within the platform, including protocol fees and streaming fees.
  * These fees are critical for the platform's economic model and compensating platform operators and participants.
  */
-abstract contract ProtocolFeeManagement is OwnableCheck, Initializable {
+abstract contract ProtocolFeeManagement is VennFirewallConsumer, OwnableCheck, Initializable {
   uint256 public maxManagementFee;
   uint256 public maxPerformanceFee;
   uint256 public maxEntryFee;
@@ -36,7 +37,7 @@ abstract contract ProtocolFeeManagement is OwnableCheck, Initializable {
 
   function updateProtocolFee(
     uint256 _newProtocolFee
-  ) external onlyProtocolOwner {
+  ) external onlyProtocolOwner firewallProtected {
     if (_newProtocolFee > 5_000 || _newProtocolFee == protocolFee)
       revert ErrorLibrary.InvalidProtocolFee();
     protocolFee = _newProtocolFee;
@@ -45,7 +46,7 @@ abstract contract ProtocolFeeManagement is OwnableCheck, Initializable {
 
   function updateProtocolStreamingFee(
     uint256 _newProtocolStreamingFee
-  ) external onlyProtocolOwner {
+  ) external onlyProtocolOwner firewallProtected {
     if (
       _newProtocolStreamingFee > 100 ||
       _newProtocolStreamingFee == protocolStreamingFee

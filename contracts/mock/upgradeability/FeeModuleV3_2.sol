@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {FeeConfigV3_2} from "./changedDependencies/fee_v3_2/FeeConfigV3_2.sol";
 import {FeeCalculations} from "../../fee/FeeCalculations.sol";
 import {IPriceOracle} from "../../oracle/IPriceOracle.sol";
@@ -10,7 +11,7 @@ import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
  * @title FeeModule
  * @dev Manages the minting of fees for different operations, utilizing configurations from FeeConfig and calculations from FeeCalculations.
  */
-contract FeeModuleV3_2 is FeeConfigV3_2, FeeCalculations {
+contract FeeModuleV3_2 is VennFirewallConsumer, FeeConfigV3_2, FeeCalculations {
   /// @custom:oz-upgrades-unsafe-allow constructor
   constructor() {
     _disableInitializers();
@@ -28,7 +29,7 @@ contract FeeModuleV3_2 is FeeConfigV3_2, FeeCalculations {
     address _assetManagementConfig,
     address _protocolConfig,
     address _accessController
-  ) external {
+  ) external firewallProtected {
     FeeConfigV3_2.initialize(
       _portfolio,
       _assetManagementConfig,
@@ -116,6 +117,7 @@ contract FeeModuleV3_2 is FeeConfigV3_2, FeeCalculations {
   function chargeProtocolAndManagementFeesProtocol()
     external
     onlyPortfolioManager
+    firewallProtected
   {
     _chargeProtocolAndManagementFees();
   }
@@ -127,6 +129,7 @@ contract FeeModuleV3_2 is FeeConfigV3_2, FeeCalculations {
   function chargeProtocolAndManagementFees()
     external
     protocolNotEmergencyPaused
+    firewallProtected
   {
     _chargeProtocolAndManagementFees();
   }
@@ -140,7 +143,7 @@ contract FeeModuleV3_2 is FeeConfigV3_2, FeeCalculations {
   function _chargeEntryOrExitFee(
     uint256 _mintAmount,
     uint256 _fee
-  ) external nonReentrant onlyPortfolioManager returns (uint256 userAmount) {
+  ) external nonReentrant onlyPortfolioManager firewallProtected returns (uint256 userAmount) {
     uint256 entryOrExitFee = _calculateEntryOrExitFee(_fee, _mintAmount);
     (uint256 protocolFee, uint256 assetManagerFee) = _splitFee(
       entryOrExitFee,
@@ -156,7 +159,7 @@ contract FeeModuleV3_2 is FeeConfigV3_2, FeeCalculations {
   /**
    * @dev Calculates and mints performance fees based on the vault's performance relative to a high watermark.
    */
-  function chargePerformanceFee() external onlyAssetManager {
+  function chargePerformanceFee() external onlyAssetManager firewallProtected {
     uint256 totalSupply = portfolio.totalSupply();
     uint256 vaultBalance = portfolio.getVaultValueInUSD(
       IPriceOracle(protocolConfig.oracle()),
