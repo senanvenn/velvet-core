@@ -18,6 +18,9 @@ import {PortfolioTokenV3_2} from "./PortfolioTokenV3_2.sol";
 
 import {IAllowanceTransfer} from "../../../../core/interfaces/IAllowanceTransfer.sol";
 
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+
 /**
  * @title VaultManager
  * @dev Extends functionality for managing deposits and withdrawals in the vault.
@@ -344,5 +347,13 @@ abstract contract VaultManagerV3_2 is
       );
     }
     return _minRatioAfterTransfer;
+  }
+
+  function _msgData() internal view virtual override(PortfolioTokenV3_2, Context) returns (bytes calldata) {
+    return PortfolioTokenV3_2._msgData();
+  }
+
+  function _msgSender() internal view virtual override(PortfolioTokenV3_2, Context) returns (address) {
+    return PortfolioTokenV3_2._msgSender();
   }
 }

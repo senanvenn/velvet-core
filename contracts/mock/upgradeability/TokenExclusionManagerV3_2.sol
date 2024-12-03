@@ -8,6 +8,8 @@ import {AccessController} from "../../access/AccessController.sol";
 import {TransferHelper} from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import {ErrorLibrary} from "../../library/ErrorLibrary.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/security/ReentrancyGuardUpgradeable.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title TokenExclusionManager
@@ -269,5 +271,13 @@ contract TokenExclusionManagerV3_2 is
     address newImplementation
   ) internal override onlyOwner {
     // Intentionally left empty as required by an abstract contract
+  }
+
+  function _msgData() internal view virtual override(ContextUpgradeable, Context) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, Context) returns (address) {
+    return ContextUpgradeable._msgSender();
   }
 }

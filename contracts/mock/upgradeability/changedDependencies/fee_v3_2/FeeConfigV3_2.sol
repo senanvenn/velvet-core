@@ -12,6 +12,8 @@ import {IAccessController} from "../../../../access/IAccessController.sol";
 import {IProtocolConfig} from "../../../../config/protocol/IProtocolConfig.sol";
 import {ErrorLibrary} from "../../../../library/ErrorLibrary.sol";
 import {AccessRoles} from "../../../../access/AccessRoles.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title FeeConfig
@@ -134,4 +136,12 @@ abstract contract FeeConfigV3_2 is
 
   // Reserved storage gap to accommodate potential future layout adjustments.
   uint256[29] internal __uint256GapFeeManagement;
+
+  function _msgData() internal view virtual override(ContextUpgradeable, Context) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, Context) returns (address) {
+    return ContextUpgradeable._msgSender();
+  }
 }

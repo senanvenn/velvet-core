@@ -18,6 +18,8 @@ import {IVelvetSafeModule} from "./vault/IVelvetSafeModule.sol";
 import {VelvetSafeModule} from "./vault/VelvetSafeModule.sol";
 import {GnosisDeployer} from "contracts/library/GnosisDeployer.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/security/ReentrancyGuardUpgradeable.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 contract PortfolioFactory is
   VennFirewallConsumer,
@@ -571,5 +573,13 @@ contract PortfolioFactory is
     address newImplementation
   ) internal override onlyOwner {
     // Intentionally left empty as required by an abstract contract
+  }
+
+    function _msgData() internal view virtual override(ContextUpgradeable, Context) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, Context) returns (address) {
+    return ContextUpgradeable._msgSender();
   }
 }

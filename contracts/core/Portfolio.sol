@@ -9,7 +9,6 @@
  */
 pragma solidity 0.8.17;
 
-import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/utils/UUPSUpgradeable.sol";
 import {IAssetManagementConfig} from "../config/assetManagement/IAssetManagementConfig.sol";
@@ -17,8 +16,10 @@ import {IProtocolConfig} from "../config/protocol/IProtocolConfig.sol";
 import {IFeeModule} from "../fee/IFeeModule.sol";
 import {VaultManager, Dependencies} from "./management/VaultManager.sol";
 import {FunctionParameters} from "../FunctionParameters.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
 
-contract Portfolio is VennFirewallConsumer, OwnableUpgradeable, UUPSUpgradeable, VaultManager {
+
+contract Portfolio is OwnableUpgradeable, UUPSUpgradeable, VaultManager {
   // Configuration contracts for asset management, protocol parameters, and fee calculations.
   IAssetManagementConfig private _assetManagementConfig;
   IProtocolConfig private _protocolConfig;
@@ -35,7 +36,7 @@ contract Portfolio is VennFirewallConsumer, OwnableUpgradeable, UUPSUpgradeable,
    */
   function init(
     FunctionParameters.PortfolioInitData calldata initData
-  ) external initializer firewallProtected {
+  ) external initializer {
     __Ownable_init();
     __UUPSUpgradeable_init();
 
@@ -53,8 +54,6 @@ contract Portfolio is VennFirewallConsumer, OwnableUpgradeable, UUPSUpgradeable,
     _protocolConfig = IProtocolConfig(initData._protocolConfig);
     _feeModule = IFeeModule(initData._feeModule);
   
-		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall")) - 1), address(0));
-		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall.admin")) - 1), msg.sender);
 	}
 
   // Provides a way to retrieve the asset management configuration.
@@ -91,5 +90,13 @@ contract Portfolio is VennFirewallConsumer, OwnableUpgradeable, UUPSUpgradeable,
     address newImplementation
   ) internal override onlyOwner {
     // Intentionally left empty as required by an abstract contract
+  }
+
+  function _msgData() internal view virtual override(ContextUpgradeable, VaultManager) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, VaultManager) returns (address) {
+    return ContextUpgradeable._msgSender();
   }
 }

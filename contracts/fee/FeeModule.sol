@@ -6,6 +6,8 @@ import {FeeConfig} from "./FeeConfig.sol";
 import {FeeCalculations} from "./FeeCalculations.sol";
 import {IPriceOracle} from "../oracle/IPriceOracle.sol";
 import {ErrorLibrary} from "../library/ErrorLibrary.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title FeeModule
@@ -213,5 +215,13 @@ contract FeeModule is VennFirewallConsumer, FeeConfig, FeeCalculations {
     if (protocolConfig.isProtocolEmergencyPaused())
       revert ErrorLibrary.ProtocolEmergencyPaused();
     _; // Continues function execution if the protocol is not paused
+  }
+
+  function _msgData() internal view virtual override(Context, FeeConfig) returns (bytes calldata) {
+    return FeeConfig._msgData();
+  }
+
+  function _msgSender() internal view virtual override(Context, FeeConfig) returns (address) {
+    return FeeConfig._msgSender();
   }
 }

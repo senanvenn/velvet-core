@@ -15,6 +15,7 @@ import {VaultCalculations, Dependencies} from "../calculations/VaultCalculations
 import {MathUtils} from "../calculations/MathUtils.sol";
 import {PortfolioToken} from "../token/PortfolioToken.sol";
 import {IAllowanceTransfer} from "../interfaces/IAllowanceTransfer.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title VaultManager
@@ -59,7 +60,7 @@ abstract contract VaultManager is
     uint256 _minMintAmount,
     IAllowanceTransfer.PermitBatch calldata _permit,
     bytes calldata _signature
-  ) external virtual nonReentrant firewallProtected {
+  ) external virtual nonReentrant {
     _multiTokenDepositWithPermit(
       msg.sender,
       depositAmounts,
@@ -83,7 +84,7 @@ abstract contract VaultManager is
     address _depositFor,
     uint256[] calldata depositAmounts,
     uint256 _minMintAmount
-  ) external virtual nonReentrant firewallProtected {
+  ) external virtual nonReentrant {
     _multiTokenDeposit(_depositFor, depositAmounts, _minMintAmount);
   }
 
@@ -114,7 +115,7 @@ abstract contract VaultManager is
    */
   function multiTokenWithdrawal(
     uint256 _portfolioTokenAmount
-  ) external virtual nonReentrant firewallProtected {
+  ) external virtual nonReentrant {
     address[] memory _emptyArray;
     _multiTokenWithdrawal(
       msg.sender,
@@ -183,7 +184,7 @@ abstract contract VaultManager is
     address _token,
     uint256 _amount,
     address _to
-  ) external onlyRebalancerContract firewallProtected {
+  ) external onlyRebalancerContract {
     // Prepare the data for ERC20 token transfer
     bytes memory inputData = abi.encodeWithSelector(
       IERC20Upgradeable.transfer.selector,
@@ -212,7 +213,7 @@ abstract contract VaultManager is
   function claimRewardTokens(
     address _target,
     bytes memory _claimCalldata
-  ) external onlyRebalancerContract firewallProtected {
+  ) external onlyRebalancerContract {
     // Execute the transfer through the safe module and check for success
     (, bytes memory data) = IVelvetSafeModule(safeModule).executeWallet(
       _target,
@@ -622,5 +623,13 @@ abstract contract VaultManager is
     }
     emit UserDepositedAmounts(depositedAmounts, portfolioTokens);
     return _minRatioAfterTransfer;
+  }
+
+  function _msgData() internal view virtual override(Context, PortfolioToken) returns (bytes calldata) {
+    return PortfolioToken._msgData();
+  }
+
+  function _msgSender() internal view virtual override(Context, PortfolioToken) returns (address) {
+    return PortfolioToken._msgSender();
   }
 }

@@ -17,6 +17,9 @@ import {AccessRoles} from "../../access/AccessRoles.sol";
 
 import {IAccessController} from "../../access/IAccessController.sol";
 
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+
 /**
  * @title MainContract
  * @dev Main contract integrating all management functionalities with access control.
@@ -109,5 +112,13 @@ contract AssetManagementConfig is
     address newImplementation
   ) internal override onlyOwner {
     // Intentionally left empty as required by an abstract contract
+  }
+
+  function _msgData() internal view virtual override(ContextUpgradeable, Context) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, Context) returns (address) {
+    return ContextUpgradeable._msgSender();
   }
 }

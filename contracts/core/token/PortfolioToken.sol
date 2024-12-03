@@ -8,6 +8,9 @@ import {CooldownManager, ErrorLibrary} from "../cooldown/CooldownManager.sol";
 import {Dependencies} from "../config/Dependencies.sol";
 import {UserManagement} from "../user/UserManagement.sol";
 
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+
 /**
  * @title PortfolioToken
  * @notice Represents a tokenized share of the portfolio fund, facilitating deposit and withdrawal by minting and burning portfolio tokens.
@@ -152,5 +155,13 @@ abstract contract PortfolioToken is
       _updateUserRecord(_from, balanceOf(_from));
       _updateUserRecord(_to, balanceOf(_to));
     }
+  }
+
+  function _msgData() internal view virtual override(ContextUpgradeable, Context) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, Context) returns (address) {
+    return ContextUpgradeable._msgSender();
   }
 }

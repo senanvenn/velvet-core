@@ -17,7 +17,8 @@ import {IProtocolConfig} from "../../config/protocol/IProtocolConfig.sol";
 import {IFeeModule} from "../../fee/IFeeModule.sol";
 import {VaultManagerV3_4, Dependencies} from "./changedDependencies/v3_4/VaultManagerV3_4.sol";
 import {FunctionParameters} from "../../FunctionParameters.sol";
-
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 /**
  * @title PortfolioV3_4
  * @author Velvet.Capital
@@ -107,5 +108,13 @@ contract PortfolioV3_4 is
     address newImplementation
   ) internal override onlyOwner {
     // Intentionally left empty as required by an abstract contract
+  }
+
+  function _msgData() internal view virtual override(ContextUpgradeable, VaultManagerV3_4, Context) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, VaultManagerV3_4, Context) returns (address) {
+    return ContextUpgradeable._msgSender();
   }
 }

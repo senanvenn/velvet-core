@@ -18,6 +18,9 @@ import {ITokenExclusionManager} from "../interfaces/ITokenExclusionManager.sol";
 import {TokenRemovalVault} from "../../vault/TokenRemovalVault.sol";
 import {ITokenRemovalVault} from "../../vault/ITokenRemovalVault.sol";
 
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+
 /**
  * @title TokenExclusionManager
  * @dev Manages the exclusion of tokens from the platform, specifically in cases where tokens are removed from indices due to various reasons, e.g., lack of liquidity.
@@ -381,5 +384,13 @@ contract TokenExclusionManager is
     address newImplementation
   ) internal override onlyOwner {
     // Intentionally left empty as required by an abstract contract
+  }
+
+  function _msgData() internal view virtual override(ContextUpgradeable, Context) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, Context) returns (address) {
+    return ContextUpgradeable._msgSender();
   }
 }

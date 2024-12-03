@@ -7,6 +7,8 @@ import {AccessModifiers} from "../../../../core/access/AccessModifiers.sol";
 import {CooldownManager, ErrorLibrary} from "../../../../core/cooldown/CooldownManager.sol";
 import {Dependencies} from "../../../../core/config/Dependencies.sol";
 import {UserManagementV3_2} from "./UserManagementV3_2.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title PortfolioToken
@@ -154,5 +156,13 @@ abstract contract PortfolioTokenV3_2 is
       _updateUserRecord(_from, balanceOf(_from));
       _updateUserRecord(_to, balanceOf(_to));
     }
+  }
+
+  function _msgData() internal view virtual override(ContextUpgradeable, Context) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, Context) returns (address) {
+    return ContextUpgradeable._msgSender();
   }
 }

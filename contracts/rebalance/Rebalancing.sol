@@ -11,6 +11,8 @@ import {IIntentHandler} from "../handler/IIntentHandler.sol";
 import {RebalancingConfig} from "./RebalancingConfig.sol";
 
 import {FunctionParameters} from "../FunctionParameters.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title RebalancingCore
@@ -407,5 +409,13 @@ contract Rebalancing is
     if (protocolConfig.isProtocolPaused())
       revert ErrorLibrary.ProtocolIsPaused();
     _; // Continues function execution if the protocol is not paused
+  }
+
+  function _msgData() internal view virtual override(ContextUpgradeable, Context) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, Context) returns (address) {
+    return ContextUpgradeable._msgSender();
   }
 }

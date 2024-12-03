@@ -13,6 +13,8 @@ pragma solidity 0.8.17;
 import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {Module, Enum} from "@gnosis.pm/zodiac/contracts/core/Module.sol";
 import {ErrorLibrary} from "../library/ErrorLibrary.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 contract VelvetSafeModule is VennFirewallConsumer, Module {
   address public multiSendLibrary;
@@ -47,5 +49,13 @@ contract VelvetSafeModule is VennFirewallConsumer, Module {
       Enum.Operation.Call
     );
     if (!isSuccess) revert ErrorLibrary.CallFailed();
+  }
+
+  function _msgData() internal view virtual override(ContextUpgradeable, Context) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, Context) returns (address) {
+    return ContextUpgradeable._msgSender();
   }
 }

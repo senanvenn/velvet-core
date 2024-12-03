@@ -7,6 +7,9 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {TransferHelper} from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import {ErrorLibrary} from "../library/ErrorLibrary.sol";
 
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+
 /**
  * @title TokenRemovalVault
  * @notice This contract acts as a vault for tokens that have been removed from a portfolio.
@@ -40,5 +43,14 @@ contract TokenRemovalVault is VennFirewallConsumer, OwnableUpgradeable {
       revert ErrorLibrary.AmountCannotBeZero();
     }
     TransferHelper.safeTransfer(_token, _to, _amount);
+  }
+
+
+  function _msgData() internal view virtual override(ContextUpgradeable, Context) returns (bytes calldata) {
+    return ContextUpgradeable._msgData();
+  }
+
+  function _msgSender() internal view virtual override(ContextUpgradeable, Context) returns (address) {
+    return ContextUpgradeable._msgSender();
   }
 }

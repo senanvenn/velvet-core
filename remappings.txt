@@ -1,8 +1,9 @@
-
 @ironblocks/firewall-consumer/=lib/ironblocks/onchain-firewall/packages/firewall-consumer/
-@openzeppelin/=lib/openzeppelin-contracts/
 ds-test/=lib/openzeppelin-contracts/lib/forge-std/lib/ds-test/src/
 erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/
 forge-std/=lib/forge-std/src/
-openzeppelin-contracts/=lib/openzeppelin-contracts/
-openzeppelin/=lib/openzeppelin-contracts/contracts/
+@openzeppelin/contracts-upgradeable-4.9.6/=node_modules/@openzeppelin/contracts-upgradeable-4.9.6/
+@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/
+@openzeppelin/contracts-4.8.2/=node_modules/@openzeppelin/contracts-4.8.2/
+@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/
+contracts/=contracts/
