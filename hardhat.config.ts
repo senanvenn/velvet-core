@@ -16,7 +16,7 @@ import { chainIdToAddresses } from "./scripts/networkVariables";
 
 import * as tdly from "@tenderly/hardhat-tenderly";
 
-tdly.setup({ automaticVerifications: false });
+// tdly.setup({ automaticVerifications: false });
 
 const mnemonic = process.env.MNEMONIC;
 if (!mnemonic) {
@@ -58,6 +58,7 @@ const chainIds = {
   ropsten: 3,
   ArbitrumOne: 42161,
   BaseMainnet: 8453,
+  holesky: 17000,
 };
 
 const config: HardhatUserConfig = {
@@ -91,6 +92,15 @@ const config: HardhatUserConfig = {
       },
       chainId: chainIds["mainnet"],
       url: "https://mainnet.infura.io/v3/" + infuraApiKey + "",
+    },
+    holesky: {
+      accounts: {
+        mnemonic,
+        path: "m/44'/60'/0'/0",
+        initialIndex: 3,
+      },
+      chainId: chainIds["holesky"],
+      url: "https://holesky.infura.io/v3/" + infuraApiKey + "",
     },
     rinkeby: {
       accounts: {
@@ -168,13 +178,26 @@ const config: HardhatUserConfig = {
       {
         version: "0.8.17",
         settings: {
+          viaIR: true,
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 1,
           },
         },
       },
     ],
+    overrides: {
+      "contracts/PortfolioFactory.sol": {
+        version: "0.8.17",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          viaIR: false,
+        },
+      },
+    },
   },
   mocha: {
     timeout: 400000,
@@ -202,11 +225,11 @@ const config: HardhatUserConfig = {
     ],
     spacing: 2,
   },
-  tenderly: {
-    project: "Base10April",
-    username: "velvet-capital",
-    privateVerification: true,
-  },
+  // tenderly: {
+  //   project: "Base10April",
+  //   username: "velvet-capital",
+  //   privateVerification: true,
+  // },
 };
 
 module.exports = config;

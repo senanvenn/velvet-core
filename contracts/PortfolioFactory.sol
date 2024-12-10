@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
-import {VennFirewallConsumer} from "@ironblocks/firewall-consumer/contracts/consumers/VennFirewallConsumer.sol";
 import {AccessController} from "./access/AccessController.sol";
 import {IPortfolio} from "./core/interfaces/IPortfolio.sol";
 import {IAssetManagementConfig} from "./config/assetManagement/IAssetManagementConfig.sol";
@@ -18,11 +17,9 @@ import {IVelvetSafeModule} from "./vault/IVelvetSafeModule.sol";
 import {VelvetSafeModule} from "./vault/VelvetSafeModule.sol";
 import {GnosisDeployer} from "contracts/library/GnosisDeployer.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/security/ReentrancyGuardUpgradeable.sol";
-import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable-4.9.6/utils/ContextUpgradeable.sol";
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+
 
 contract PortfolioFactory is
-  VennFirewallConsumer,
   Ownable2StepUpgradeable,
   ReentrancyGuardUpgradeable,
   UUPSUpgradeable
@@ -97,7 +94,7 @@ contract PortfolioFactory is
    */
   function initialize(
     FunctionParameters.PortfolioFactoryInitData memory initData
-  ) external initializer firewallProtected {
+  ) external initializer {
     __Ownable2Step_init();
     __ReentrancyGuard_init();
     __UUPSUpgradeable_init();
@@ -138,8 +135,6 @@ contract PortfolioFactory is
     gnosisMultisendLibrary = initData._gnosisMultisendLibrary;
     gnosisSafeProxyFactory = initData._gnosisSafeProxyFactory;
   
-		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall")) - 1), address(0));
-		_setAddressBySlot(bytes32(uint256(keccak256("eip1967.firewall.admin")) - 1), msg.sender);
 	}
 
   /**
@@ -148,7 +143,7 @@ contract PortfolioFactory is
    */
   function createPortfolioNonCustodial(
     FunctionParameters.PortfolioCreationInitData memory initData
-  ) external virtual nonReentrant firewallProtected {
+  ) external virtual nonReentrant {
     address[] memory _owner = new address[](1);
     _owner[0] = address(0x0000000000000000000000000000000000000000);
     _createPortfolio(initData, false, _owner, 1);
@@ -164,7 +159,7 @@ contract PortfolioFactory is
     FunctionParameters.PortfolioCreationInitData memory initData,
     address[] memory _owners,
     uint256 _threshold
-  ) external virtual nonReentrant firewallProtected {
+  ) external virtual nonReentrant {
     if (_owners.length == 0) revert ErrorLibrary.NoOwnerPassed();
     if (_threshold > _owners.length || _threshold == 0)
       revert ErrorLibrary.InvalidThresholdLength();
@@ -356,7 +351,7 @@ contract PortfolioFactory is
   function upgradeTokenExclusionManager(
     address[] calldata _proxy,
     address _newImpl
-  ) external virtual onlyOwner firewallProtected {
+  ) external virtual onlyOwner {
     _setBaseTokenExclusionManagerAddress(_newImpl);
     _upgrade(_proxy, _newImpl);
     emit UpgradeTokenExclusionManager(_newImpl);
@@ -370,7 +365,7 @@ contract PortfolioFactory is
   function upgradePortfolio(
     address[] calldata _proxy,
     address _newImpl
-  ) external virtual onlyOwner firewallProtected {
+  ) external virtual onlyOwner {
     _setBasePortfolioAddress(_newImpl);
     _upgrade(_proxy, _newImpl);
     emit UpgradePortfolio(_newImpl);
@@ -384,7 +379,7 @@ contract PortfolioFactory is
   function upgradeAssetManagerConfig(
     address[] calldata _proxy,
     address _newImpl
-  ) external virtual onlyOwner firewallProtected {
+  ) external virtual onlyOwner {
     _setBaseAssetManagementConfigAddress(_newImpl);
     _upgrade(_proxy, _newImpl);
     emit UpgradeAssetManagerConfig(_newImpl);
@@ -398,7 +393,7 @@ contract PortfolioFactory is
   function upgradeFeeModule(
     address[] calldata _proxy,
     address _newImpl
-  ) external virtual onlyOwner firewallProtected {
+  ) external virtual onlyOwner {
     _setFeeModuleImplementationAddress(_newImpl);
     _upgrade(_proxy, _newImpl);
     emit UpgradeFeeModule(_newImpl);
@@ -412,7 +407,7 @@ contract PortfolioFactory is
   function upgradeRebalance(
     address[] calldata _proxy,
     address _newImpl
-  ) external virtual onlyOwner firewallProtected {
+  ) external virtual onlyOwner {
     _setBaseRebalancingAddress(_newImpl);
     _upgrade(_proxy, _newImpl);
     emit UpgradeRebalance(_newImpl);
@@ -445,7 +440,7 @@ contract PortfolioFactory is
    * @notice This function allows us to pause or unpause the portfolio creation state
    * @param _state Boolean parameter to set the portfolio creation state of the factory
    */
-  function setPortfolioCreationState(bool _state) external virtual onlyOwner firewallProtected {
+  function setPortfolioCreationState(bool _state) external virtual onlyOwner {
     portfolioCreationPause = _state;
     emit PortfolioCreationState(_state);
   }
@@ -508,7 +503,7 @@ contract PortfolioFactory is
    */
   function setTokenRemovalVaultModule(
     address _newImpl
-  ) external virtual onlyOwner firewallProtected {
+  ) external virtual onlyOwner {
     setTokenRemovalVaultImplementationAddress(_newImpl);
     emit UpdataTokenRemovalVaultBaseAddress(_newImpl);
   }
@@ -525,7 +520,7 @@ contract PortfolioFactory is
     address _newGnosisFallbackLibrary,
     address _newGnosisMultisendLibrary,
     address _newGnosisSafeProxyFactory
-  ) external virtual onlyOwner firewallProtected {
+  ) external virtual onlyOwner {
     if (
       _newGnosisSingleton != address(0) ||
       _newGnosisFallbackLibrary != address(0) ||
@@ -553,7 +548,7 @@ contract PortfolioFactory is
   function transferSuperAdminOwnership(
     address _accessController,
     address _account
-  ) external firewallProtected {
+  ) external {
     if (_accessController == address(0) || _account == address(0))
       revert ErrorLibrary.InvalidAddress();
     bytes32 SUPER_ADMIN = keccak256("SUPER_ADMIN");
@@ -575,11 +570,4 @@ contract PortfolioFactory is
     // Intentionally left empty as required by an abstract contract
   }
 
-    function _msgData() internal view virtual override(ContextUpgradeable, Context) returns (bytes calldata) {
-    return ContextUpgradeable._msgData();
-  }
-
-  function _msgSender() internal view virtual override(ContextUpgradeable, Context) returns (address) {
-    return ContextUpgradeable._msgSender();
-  }
 }
